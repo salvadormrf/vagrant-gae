@@ -1,0 +1,38 @@
+---
+- name: Ubuntu | Packages | Install required system packages.
+  apt: >
+    pkg={{ item }}
+    state=installed
+    update-cache=yes
+  with_items:
+    - build-essential
+    - git
+    
+    - libfreetype6
+    - libfreetype6-dev
+    - libjpeg62
+    - libjpeg62-dev
+    - libmysqlclient-dev
+    - libpng12-0
+    - libpng12-dev
+    - libssl-dev
+    - libxml2
+    - libxml2-dev
+    - libxslt1-dev
+    - swig
+    - zlib1g-dev
+    
+    - python2.7
+    - python2.7-dev
+    - python-setuptools
+    - python-m2crypto
+    - python-virtualenv
+    - python-imaging
+    
+    - htop
+
+  tags:
+    - base
+    - packages
+    - provision
+    - app

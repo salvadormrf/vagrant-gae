@@ -1,0 +1,18 @@
+---
+- name: Django | GAE | Download App engine SDK.
+  sudo_user: "{{ project.user }}"
+  get_url: >
+    url=https://storage.googleapis.com/appengine-sdks/featured/google_appengine_1.9.12.zip
+    dest=/tmp/gae.zip
+  tags:
+    - gae
+    - application
+    - app
+
+- name: Django | GAE | Install App engine SDK.
+  raw: >
+    unzip -o /tmp/gae.zip -d {{ project.root }}/tools/
+  tags:
+    - gae-unzip
+    - application
+    - app

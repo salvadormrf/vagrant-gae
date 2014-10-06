@@ -1,0 +1,14 @@
+---
+
+- name: Gather data about target box
+  hosts: appservers
+  gather_facts: yes
+  tasks:
+    - debug: Gather Facts
+    
+- name: Configure target box
+  hosts: appservers
+  sudo: yes
+  roles:
+    - { role: gae_python_app }
+    

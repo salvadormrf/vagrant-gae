@@ -1,0 +1,17 @@
+
+[devbox]
+demo-app.dev ansible_ssh_user=vagrant ansible_ssh_private_key_file=~/.vagrant.d/insecure_private_key
+
+[dbservers:children]
+devbox
+
+[appservers:children]
+devbox
+
+[servers:children]
+dbservers
+appservers
+
+[vagrant:children]
+dbservers
+appservers

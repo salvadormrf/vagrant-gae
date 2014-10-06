@@ -1,0 +1,13 @@
+---
+- name: Gather data about target box
+  hosts: servers
+  gather_facts: yes
+  tasks:
+    - debug: Gather Facts
+    
+- name: Configure target box
+  hosts: servers
+  sudo: yes
+  roles:
+    - { role: ubuntu }
+    
