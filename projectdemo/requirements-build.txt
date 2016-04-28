@@ -1,0 +1,6 @@
+# Dependencies required for running the build process
+
+# Pillow==2.8.1
+
+flake8
+pep8-naming

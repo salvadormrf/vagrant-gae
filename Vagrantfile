@@ -1,73 +1,57 @@
-#!/usr/bin/env ruby
-Vagrant.require_version '>=1.6.0'
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
 
-Vagrant.configure("2") do |config|
-	
-	# box options
-	config.vm.provider :virtualbox do |virtualbox|
-		virtualbox.customize ["modifyvm", :id, "--memory", 2048]
-		virtualbox.customize ["modifyvm", :id, "--cpus", 2]
-    end
-    
-    # update host OS hosts file
-    config.hostmanager.enabled = true
-    config.hostmanager.manage_host = true
-  	
-    # devbox
-    config.vm.define :devbox do |node|
-    	
-    	# box
-        node.vm.box = "vagrant-gae"
-        node.vm.box_url = 'https://cloud-images.ubuntu.com/vagrant/precise/current/precise-server-cloudimg-i386-vagrant-disk1.box'
-		
-        # post deploy messages
-        node.vm.post_up_message = "Run: vagrant ssh\nand after: ./demo_app/run.sh"
-        
-		# set hostname
-		node.vm.hostname = "demo-app.dev"
-        
-        # network
-        node.vm.network :private_network, ip: "192.168.100.120"
-        
-    end
-    
-    # provisioning
-    config.vm.provision :ansible do |ansible|
-        ansible.playbook = "ansible/playbook/site.yml"
-        ansible.inventory_path = "ansible/inventory/vagrant"
-        ansible.verbose = "vvvv"
-        ansible.limit = 'all'
-    end
-    
+VAGRANTFILE_API_VERSION="2"
+PROJECT_NAME="projectdemo"
+DJANGO_ENV="local"
+
+REQUIRED_PLUGINS = [
+  "vagrant-hostmanager",
+  "vagrant-fsnotify",
+  "vagrant-vbguest",
+]
+
+# Install automatically vagrant plugins
+uninstalled_required_plugins = REQUIRED_PLUGINS.reject(&Vagrant.method(:has_plugin?))
+if ! uninstalled_required_plugins.empty? && ARGV.first != "plugin"
+  exec "vagrant plugin install '#{uninstalled_required_plugins.join("' '")}' && vagrant '#{ARGV.join("' '")}'"
 end
 
-#
-# # vagrant plugin install vagrant-hostmanager
-#
-# remove existing keys
-# ssh-keygen -R demoapp.dev 
-# ssh-keygen -R 192.168.100.120
-#
-#
-# Hacks, patches (ubuntu 12 and some for 14)
-#
-# ansible-playbook ansible/playbook/site.yml -i ansible/inventory/vagrant -vvvv
-#
-# install new dependencies
-#pip install -r {{ project.pip_requirements }}
-#pip install PIL==1.1.7 --allow-external PIL --allow-unverified PIL
-#
-#sudo ln -s /usr/lib/`uname -i`-linux-gnu/libfreetype.so /usr/lib
-#sudo ln -s /usr/lib/`uname -i`-linux-gnu/libjpeg.so /usr/lib
-#sudo ln -s /usr/lib/`uname -i`-linux-gnu/libz.so /usr/lib
-#
-# http://www.turnkeylinux.org/docs/virtualization/udev-persistent-net-generation
-# echo -n > /etc/udev/rules.d/70-persistent-net.rules
-#
-# gunzip < /vagrant/resources/dumps/demoapp.sql.gz | mysql -uroot -proot demoapp
-#
-# sudo pico demoapp/tools/google_appengine/google/appengine/tools/devappserver2/watcher_common.py
-# _IGNORED_DIRS = ('.git', '.hg', '.svn', 'mode_modules')
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+    config.vm.box = "ubuntu/trusty64"
+    config.vm.box_check_update = false
 
+    # Appengine dev server does not detect very well modified files from the host machine.
+    # The plugin vagrant-fsnotify passes file events from host to guest machine.
+    # In general the app engine dev server is a bit slow.
+    # config.vm.synced_folder "project", "/home/vagrant/project"
+    config.vm.synced_folder "projectdemo", "/home/vagrant/project", nfs: true, fsnotify: true, exclude: ["vendor", "node_modules", ".pyc"]
+    config.vm.post_up_message = "IMPORTANT: You should run `vagrant fsnotify' on a separate terminal to enable auto-reloading features."
 
-#
+    # Network config
+    config.hostmanager.enabled = true
+    config.hostmanager.manage_host = true
+    config.hostmanager.ignore_private_ip = false
+    config.hostmanager.include_offline = true
+    config.vm.define 'projectdemo-v1' do |node|
+
+        node.vm.hostname = 'projectdemo.dev'
+        node.hostmanager.aliases = []
+        node.vm.network :private_network, ip: '192.168.1.10'
+
+        config.vm.network "forwarded_port", guest: 8080, host: 8080 # django
+        config.vm.network "forwarded_port", guest: 3306, host: 13306 # mysql
+        config.vm.network "forwarded_port", guest: 1080, host: 1088 # webmail
+    end
+
+    # Add memory
+    config.vm.provider :virtualbox do |vb|
+        vb.customize ["modifyvm", :id, "--memory", "2048"]
+    end
+
+    # provision
+    config.vm.provision :shell, :path => "vagrant/provision/ubuntu.sh"
+    config.vm.provision :shell, :path => "vagrant/provision/mysql.sh", :args => [PROJECT_NAME]
+    config.vm.provision :shell, :path => "vagrant/provision/python.sh", :args => [PROJECT_NAME, DJANGO_ENV]
+    config.vm.provision :shell, :path => "vagrant/provision/gcloud_sdk.sh"
+end

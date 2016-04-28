@@ -1,4 +1,0 @@
----
-- include: servers.yml
-- include: dbservers.yml
-- include: appservers.yml

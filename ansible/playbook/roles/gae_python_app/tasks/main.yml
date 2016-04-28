@@ -1,5 +1,0 @@
----
-- include: packages.yml
-- include: directories.yml
-- include: gae.yml
-- include: server.yml

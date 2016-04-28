@@ -1,35 +1,24 @@
-vagrant-gae
-===========
+Vagrant GAE
+----------------------------------------
 
-Vagrant development box to run Google AppEngine
+Vagrant development box to run Google AppEngine.
 
+Documentation
+----------------------------------------
 
-#### Basic python App
-    # install vagrant plugin to handle hostnames
-    vagrant plugin install vagrant-hostmanager
-    
-    # boot box
-    vagrant up
-    vagrant ssh
-    
-    # run development server
-    ./demo_app/run.sh
-    
-    (open your browser on http://demo-app.dev:8777/)
-    
+### Install Vagrant & VirtualBox (OSX Instructions)
+    brew cask install virtualbox
+    brew cask install vagrant
+  
+### Run development box
+    vagrant up  
+    vagrant ssh  
 
-#### Basic Django App
-    adding soon...
-    
+    cd project
+    make run
 
-#### Issues
-    # ssh connection
-    # remove existing keys
-    # ssh-keygen -R demoapp.dev 
-    # ssh-keygen -R 192.168.100.120
-    
-    # PIL instalation
-    ...
-    
-    # Sync
-    ...
+### Application access
+
+Access **website** from:
+- [http://projectdemo.dev:8080/](http://projectdemo.dev:8080/) 
+- [http://projectdemo.dev:8000/](http://projectdemo.dev:8000/) (GAE)
